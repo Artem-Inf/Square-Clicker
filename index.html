@@ -10,14 +10,24 @@
     <link rel="icon"
         href="https://png.pngtree.com/png-clipart/20240629/original/pngtree-small-square-with-eyes-and-ears-vector-png-image_15443582.png"
         type="image/x-icon" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap"
+        rel="stylesheet">
     <style>
         body {
             cursor: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSk71ETymMjtMHj68D9DPVmD2AvvXe64ZMqTg&s'), auto;
             font-family: Arial, sans-serif;
+
             text-align: center;
-            background-color: #f0f0f0;
+            background-image: url("sounds/649d838758749e3e30ea9508_62cbNnrXwmw.webp");
+            background-repeat: no-repeat;
+            background-size: cover;
+            /* background-color: #f0f0f0; */
             margin: 0;
             padding: 0;
+
 
 
         }
@@ -25,9 +35,12 @@
         #clickable {
             width: 200px;
             height: 200px;
-            background-color: rgb(251, 0, 0);
+            background-color:
+                rgb(255, 1, 1);
+            border-radius: 12px;
             margin: 50px auto;
             cursor: pointer;
+            position: relative;
 
         }
 
@@ -76,23 +89,84 @@
             border-radius: 0 0 5px 5px;
             text-align: center;
         }
+
+        .ramka-clicker {
+            width: 500px;
+            height: 90px;
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            user-select: none;
+            pointer-events: none;
+
+        }
+
+        .drop-text {
+            font-family: Doto;
+            font-weight: 800;
+            font-size: 23px;
+            color: rgb(0, 0, 0);
+            position: absolute;
+            top: 30px;
+            left: 70px;
+            user-select: none;
+        }
+
+        .fon-ramka {
+            width: 450px;
+            height: 80px;
+            position: absolute;
+            left: 40px;
+            top: 25px;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .click-counter {
+            color: rgb(0, 0, 0);
+            margin-top: 100px;
+            font-family: Roboto Mono;
+            font-weight: 900;
+            font-size: 30px;
+            user-select: none;
+            align-items: center;
+
+        }
+
+        .tap-text {
+            user-select: none;
+            position: absolute;
+            top: 65px;
+            left: 73px;
+            color: white;
+        }
+
+        .inventory {
+            font-size: 30px;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 
 <body>
-    <div id="clickable"></div>
-    <p>Clicks remaining for drop: <span id="clicksRemaining">1000</span></p>
-    <p>Total clicks: <span id="totalClicks">0</span></p>
-    <h2>Inventory</h2>
+    <p class="click-counter"> <span id="totalClicks">0</span></p>
+    <div id="clickable">
+        <h1 class="tap-text">Tap</h1>
+    </div>
+
+    <img src="./sounds/fon-ramka.jpg" alt="fon-ramka" class="fon-ramka" oncontextmenu="return false;">
+    <img src="./sounds/ramka.png" alt="Ramka" class="ramka-clicker" oncontextmenu="return false;">
+    <p class="drop-text">Clicks remaining for drop: <span id="clicksRemaining">1000</span></p>
+
+    <h2 class="inventory">Inventory</h2>
     <div id="inventory"></div>
 
     <div id="banMessage">
-        <p>You are banned for exceeding 500 clicks per second!</p>
+        <p>You are banned for exceeding 100 clicks per seconds!</p>
         <p>Time remaining: <span id="banTimer">300</span> seconds</p>
     </div>
 
     <script>
-
         let clicksRemaining = 1000;
         let totalClicks = 0;
         let lastClickTime = 0;
@@ -100,6 +174,7 @@
         let isBanned = false;
         let banStartTime = 0;
         let banDuration = 300; // 5 minutes
+        let clickIntervalThreshold = 100; // Set an interval (in ms) to limit click rate
 
         const inventory = document.getElementById('inventory');
         const clicksRemainingDisplay = document.getElementById('clicksRemaining');
@@ -165,7 +240,8 @@
             if (isBanned) return;
             const currentTime = Date.now();
 
-            if (currentTime - lastClickTime < 1000) {
+            // Check the time difference between the last click and the current one
+            if (currentTime - lastClickTime < clickIntervalThreshold) {
                 clickCount++;
             } else {
                 clickCount = 1;
@@ -173,7 +249,7 @@
 
             lastClickTime = currentTime;
 
-            if (clickCount > 500) { // Ban user for more than 500 clicks in 1 second
+            if (clickCount > 10) { // If clicks are happening too fast (more than 10 clicks per 50ms)
                 isBanned = true;
                 banStartTime = Date.now();
                 saveBanState(); // Save ban state
@@ -196,7 +272,7 @@
                     newItem = createItem('Common', ['blue', 'violet', 'pink', 'red', 'orange', 'grey', 'black']);
                     rarity = 'Common';
                 } else if (dropChance < 0.14) { // 4% chance for Uncommon
-                    newItem = createItem('Uncommon', ['cyan', 'lime', 'leopard print']);
+                    newItem = createItem('Uncommon', ['cyan', 'lime']);
                     rarity = 'Uncommon';
                 } else if (dropChance < 0.15) { // 1% chance for Rare
                     newItem = createItem('Rare', ['brown']);
@@ -236,8 +312,8 @@
 
             return item;
         }
-
     </script>
+
 </body>
 
 </html>
