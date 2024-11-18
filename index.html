@@ -12,19 +12,23 @@
         type="image/x-icon" />
     <style>
         body {
+            cursor: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSk71ETymMjtMHj68D9DPVmD2AvvXe64ZMqTg&s'), auto;
             font-family: Arial, sans-serif;
             text-align: center;
             background-color: #f0f0f0;
             margin: 0;
             padding: 0;
+
+
         }
 
         #clickable {
-            width: 100px;
-            height: 100px;
+            width: 200px;
+            height: 200px;
             background-color: rgb(251, 0, 0);
             margin: 50px auto;
             cursor: pointer;
+
         }
 
         #inventory {
@@ -63,12 +67,14 @@
 
         .item-info {
             position: absolute;
-            bottom: -25px;
+            bottom: 0;
+            width: 100%;
             background-color: rgba(0, 0, 0, 0.7);
             color: white;
             font-size: 12px;
             padding: 2px 5px;
-            border-radius: 5px;
+            border-radius: 0 0 5px 5px;
+            text-align: center;
         }
     </style>
 </head>
@@ -81,11 +87,12 @@
     <div id="inventory"></div>
 
     <div id="banMessage">
-        <p>You are banned for exceeding 200 clicks per second!</p>
+        <p>You are banned for exceeding 500 clicks per second!</p>
         <p>Time remaining: <span id="banTimer">300</span> seconds</p>
     </div>
 
     <script>
+
         let clicksRemaining = 1000;
         let totalClicks = 0;
         let lastClickTime = 0;
@@ -154,17 +161,6 @@
             }, 1000);
         }
 
-        function showItemInfo(item, rarity) {
-            const infoBox = document.createElement('div');
-            infoBox.classList.add('item-info');
-            infoBox.textContent = `Rarity: ${rarity}`;
-            item.appendChild(infoBox);
-
-            setTimeout(() => {
-                infoBox.remove();
-            }, 3000); // Show for 3 seconds
-        }
-
         document.getElementById('clickable').addEventListener('click', () => {
             if (isBanned) return;
             const currentTime = Date.now();
@@ -177,7 +173,7 @@
 
             lastClickTime = currentTime;
 
-            if (clickCount > 200) { // Ban user for more than 50 clicks in 1 second
+            if (clickCount > 500) { // Ban user for more than 500 clicks in 1 second
                 isBanned = true;
                 banStartTime = Date.now();
                 saveBanState(); // Save ban state
@@ -193,31 +189,54 @@
             if (clicksRemaining <= 0) {
                 clicksRemaining = 1000;
                 const dropChance = Math.random();
-                if (dropChance < 0.3) { // 30% chance for a drop
-                    const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'cyan', 'magenta', 'lime'];
-                    const rarities = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
-                    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-                    const rarity = rarities[Math.floor(Math.random() * rarities.length)];
+                let newItem;
+                let rarity;
 
-                    const newItem = document.createElement('div');
-                    newItem.classList.add('item');
-                    newItem.style.backgroundColor = randomColor;
-                    newItem.setAttribute('title', rarity);
+                if (dropChance < 0.1) { // 10% chance for Common
+                    newItem = createItem('Common', ['blue', 'violet', 'pink', 'red', 'orange', 'grey', 'black']);
+                    rarity = 'Common';
+                } else if (dropChance < 0.14) { // 4% chance for Uncommon
+                    newItem = createItem('Uncommon', ['cyan', 'lime', 'leopard print']);
+                    rarity = 'Uncommon';
+                } else if (dropChance < 0.15) { // 1% chance for Rare
+                    newItem = createItem('Rare', ['brown']);
+                    rarity = 'Rare';
+                } else if (dropChance < 0.000001) { // 1 in 1,000,000 chance for Epic
+                    newItem = createItem('Epic', ['gold']);
+                    rarity = 'Epic';
+                } else if (dropChance < 0.0000001) { // 1 in 10,000,000 chance for Legendary
+                    newItem = createItem('Legendary', ['aqua']);
+                    rarity = 'Legendary';
+                }
 
-                    newItem.onclick = () => {
-                        alert(`Rarity: ${rarity}`);
-                    };
-
-                    // Show notification
-                    alert(`You received an item with ${rarity} rarity!`);
-                    showItemInfo(newItem, rarity); // Show rarity info on hover
-
+                if (newItem) {
                     inventory.appendChild(newItem);
+                    alert(`You received an item with ${rarity} rarity!`);
                 }
             }
 
             saveState(); // Save the game state
         });
+
+        function createItem(rarity, colors) {
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            const item = document.createElement('div');
+            item.classList.add('item');
+            item.style.backgroundColor = randomColor;
+            item.setAttribute('title', rarity);
+
+            const infoBox = document.createElement('div');
+            infoBox.classList.add('item-info');
+            infoBox.textContent = rarity;
+            item.appendChild(infoBox);
+
+            item.onclick = () => {
+                alert(`Rarity: ${rarity}`);
+            };
+
+            return item;
+        }
+
     </script>
 </body>
 
