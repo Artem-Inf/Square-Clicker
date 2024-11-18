@@ -268,7 +268,10 @@
                 let newItem;
                 let rarity;
 
-                if (dropChance < 0.1) { // 10% chance for Common
+                if (dropChance < 0.9) {
+                    // Ничего не выпадает, просто переходим дальше
+
+                } else if (dropChance < 0.1) { // 10% chance for Common
                     newItem = createItem('Common', ['blue', 'violet', 'pink', 'red', 'orange', 'grey', 'black']);
                     rarity = 'Common';
                 } else if (dropChance < 0.14) { // 4% chance for Uncommon
