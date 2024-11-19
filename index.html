@@ -92,7 +92,7 @@
         }
 
         .ramka-clicker {
-            width: 500px;
+            width: 515px;
             height: 90px;
             position: absolute;
             left: 20px;
@@ -114,7 +114,7 @@
         }
 
         .fon-ramka {
-            width: 450px;
+            width: 465px;
             height: 80px;
             position: absolute;
             left: 40px;
@@ -147,6 +147,12 @@
             letter-spacing: 0.5px;
             user-select: none;
         }
+        .ban-text {
+            user-select: none;
+        }
+        .ban-timer {
+            user-select: none;
+        }
     </style>
 </head>
 
@@ -164,19 +170,19 @@
     <div id="inventory"></div>
 
     <div id="banMessage">
-        <p>You are banned for exceeding 100 clicks per seconds!</p>
-        <p>Time remaining: <span id="banTimer">300</span> seconds</p>
+        <p class="ban-text">You are banned for exceeding 100 clicks per seconds!</p>
+        <p class="ban-timer">Time remaining: <t id="banTimer">300</span> seconds</p>
     </div>
 
     <script>
-        let clicksRemaining = 1000;
+        let clicksRemaining = 5000;
         let totalClicks = 0;
         let lastClickTime = 0;
         let clickCount = 0;
         let isBanned = false;
         let banStartTime = 0;
         let banDuration = 300; // 5 minutes
-        let clickIntervalThreshold = 5; // Set an interval (in ms) to limit click rate
+        let clickIntervalThreshold = 50; // Set an interval (in ms) to limit click rate
 
         const inventory = document.getElementById('inventory');
         const clicksRemainingDisplay = document.getElementById('clicksRemaining');
@@ -265,7 +271,7 @@
             clicksRemainingDisplay.textContent = clicksRemaining;
 
             if (clicksRemaining <= 0) {
-                clicksRemaining = 1000;
+                clicksRemaining = 5000;
                 const dropChance = Math.random();
                 let newItem;
                 let rarity;
