@@ -34,158 +34,195 @@
 
     <div id="banMessage">
         <p class="ban-text">You are banned for exceeding 100 clicks per seconds!</p>
-        <p class="ban-timer">Time remaining: <t id="banTimer">300</span> seconds</p>
+        <p class="ban-timer">Time remaining: <t id="banTimer">3</span> seconds</p>
     </div>
 
     <script >
-    let clicksRemaining = 5000;
-        let totalClicks = 0;
-        let lastClickTime = 0;
-        let clickCount = 0;
-        let isBanned = false;
-        let banStartTime = 0;
-        let banDuration = 300; // 5 minutes
-        let clickIntervalThreshold = 50; // Set an interval (in ms) to limit click rate
-        
-        const inventory = document.getElementById('inventory');
-        const clicksRemainingDisplay = document.getElementById('clicksRemaining');
-        const totalClicksDisplay = document.getElementById('totalClicks');
-        const banMessage = document.getElementById('banMessage');
-        const banTimer = document.getElementById('banTimer');
-        
-        // Load saved state
-        window.onload = () => {
-            const savedState = JSON.parse(localStorage.getItem('gameState'));
-            const savedBanState = JSON.parse(localStorage.getItem('banState'));
-        
-            if (savedState) {
-                clicksRemaining = savedState.clicksRemaining;
-                totalClicks = savedState.totalClicks;
-                inventory.innerHTML = savedState.inventoryHTML;
-                clicksRemainingDisplay.textContent = clicksRemaining;
-                totalClicksDisplay.textContent = totalClicks;
-            }
-        
-            if (savedBanState && savedBanState.isBanned) {
-                isBanned = true;
-                banStartTime = savedBanState.banStartTime;
-                showBanScreen();
-            }
-        };
-        
-        function saveState() {
-            const state = {
-                clicksRemaining,
-                totalClicks,
-                inventoryHTML: inventory.innerHTML
-            };
-            localStorage.setItem('gameState', JSON.stringify(state));
+ let clicksRemaining = 5000;
+let totalClicks = 0;
+let lastClickTime = 0;
+let clickCount = 0;
+let isBanned = false;
+let banStartTime = 0;
+let banDuration = 300; // Default 5 minutes (300 seconds)
+let clickIntervalThreshold = 50; // Set an interval (in ms) to limit click rate
+let banCount = 0; // Track the number of bans
+let banInterval = null; // Track the interval for the ban timer
+
+const inventory = document.getElementById('inventory');
+const clicksRemainingDisplay = document.getElementById('clicksRemaining');
+const totalClicksDisplay = document.getElementById('totalClicks');
+const banMessage = document.getElementById('banMessage');
+const banTimer = document.getElementById('banTimer');
+
+// Load saved state
+window.onload = () => {
+    const savedState = JSON.parse(localStorage.getItem('gameState'));
+    const savedBanState = JSON.parse(localStorage.getItem('banState'));
+
+    if (savedState) {
+        clicksRemaining = savedState.clicksRemaining;
+        totalClicks = savedState.totalClicks;
+        inventory.innerHTML = savedState.inventoryHTML;
+        clicksRemainingDisplay.textContent = clicksRemaining;
+        totalClicksDisplay.textContent = totalClicks;
+    }
+
+    if (savedBanState) {
+        isBanned = savedBanState.isBanned;
+        banStartTime = savedBanState.banStartTime;
+        banCount = savedBanState.banCount;
+        if (isBanned) {
+            showBanScreen();
         }
-        
-        function saveBanState() {
-            const banState = {
-                isBanned,
-                banStartTime
-            };
-            localStorage.setItem('banState', JSON.stringify(banState));
+    }
+};
+
+// Save game state
+function saveState() {
+    const state = {
+        clicksRemaining,
+        totalClicks,
+        inventoryHTML: inventory.innerHTML
+    };
+    localStorage.setItem('gameState', JSON.stringify(state));
+}
+
+// Save ban state
+function saveBanState() {
+    const banState = {
+        isBanned,
+        banStartTime,
+        banCount
+    };
+    localStorage.setItem('banState', JSON.stringify(banState));
+}
+
+// Show the ban screen and start the timer
+function showBanScreen() {
+    banMessage.style.display = 'flex';
+
+    // Calculate the ban duration based on the number of bans
+    if (banCount >= 5) {
+        banDuration = 1800; // 30 minutes
+    } else {
+        banDuration = 300; // 5 minutes
+    }
+
+    banInterval = setInterval(() => {
+        const timeElapsed = Math.floor((Date.now() - banStartTime) / 1000);
+        const timeRemaining = banDuration - timeElapsed;
+        banTimer.textContent = timeRemaining;
+
+        if (timeRemaining <= 0) {
+            clearInterval(banInterval); // Stop the timer once the ban duration is over
+            isBanned = false;
+            banMessage.style.display = 'none';
+            clickCount = 0; // Reset click count
+            saveBanState(); // Update ban state
         }
-        
-        function showBanScreen() {
-            banMessage.style.display = 'flex';
-            const banInterval = setInterval(() => {
-                const timeElapsed = Math.floor((Date.now() - banStartTime) / 1000);
-                const timeRemaining = banDuration - timeElapsed;
-                banTimer.textContent = timeRemaining;
-        
-                if (timeRemaining <= 0) {
-                    clearInterval(banInterval);
-                    isBanned = false;
-                    banMessage.style.display = 'none';
-                    clickCount = 0; // Reset click count
-                    saveBanState(); // Update ban state
-                }
-            }, 1000);
+    }, 1000);
+}
+
+// Handle the click event
+function handleClick() {
+    if (isBanned) return;
+    const currentTime = Date.now();
+
+    // Check the time difference between the last click and the current one
+    if (currentTime - lastClickTime < clickIntervalThreshold) {
+        clickCount++;
+    } else {
+        clickCount = 1;
+    }
+
+    lastClickTime = currentTime;
+
+    if (clickCount > 10) { // If clicks are happening too fast (more than 10 clicks per 50ms)
+        isBanned = true;
+        banStartTime = Date.now();
+        banCount++; // Increment the ban count
+        saveBanState(); // Save ban state
+        showBanScreen();
+        return;
+    }
+
+    totalClicks++;
+    totalClicksDisplay.textContent = totalClicks;
+    clicksRemaining--;
+    clicksRemainingDisplay.textContent = clicksRemaining;
+
+    if (clicksRemaining <= 0) {
+        clicksRemaining = 5000;
+        const dropChance = Math.random();
+        let newItem;
+        let rarity;
+
+        if (dropChance < 0.9) {
+            // Nothing drops
+        } else if (dropChance < 0.1) { // 10% chance for Common
+            newItem = createItem('Common', ['blue', 'violet', 'pink', 'red', 'orange', 'grey', 'black']);
+            rarity = 'Common';
+        } else if (dropChance < 0.14) { // 4% chance for Uncommon
+            newItem = createItem('Uncommon', ['cyan', 'lime']);
+            rarity = 'Uncommon';
+        } else if (dropChance < 0.15) { // 1% chance for Rare
+            newItem = createItem('Rare', ['brown']);
+            rarity = 'Rare';
+        } else if (dropChance < 0.000001) { // 1 in 1,000,000 chance for Epic
+            newItem = createItem('Epic', ['gold']);
+            rarity = 'Epic';
+        } else if (dropChance < 0.0000001) { // 1 in 10,000,000 chance for Legendary
+            newItem = createItem('Legendary', ['aqua']);
+            rarity = 'Legendary';
         }
-        
-        document.getElementById('clickable').addEventListener('click', () => {
-            if (isBanned) return;
-            const currentTime = Date.now();
-        
-            // Check the time difference between the last click and the current one
-            if (currentTime - lastClickTime < clickIntervalThreshold) {
-                clickCount++;
-            } else {
-                clickCount = 1;
-            }
-        
-            lastClickTime = currentTime;
-        
-            if (clickCount > 10) { // If clicks are happening too fast (more than 10 clicks per 50ms)
-                isBanned = true;
-                banStartTime = Date.now();
-                saveBanState(); // Save ban state
-                showBanScreen();
-                return;
-            }
-        
-            totalClicks++;
-            totalClicksDisplay.textContent = totalClicks;
-            clicksRemaining--;
-            clicksRemainingDisplay.textContent = clicksRemaining;
-        
-            if (clicksRemaining <= 0) {
-                clicksRemaining = 5000;
-                const dropChance = Math.random();
-                let newItem;
-                let rarity;
-        
-                if (dropChance < 0.9) {
-                    // Ничего не выпадает, просто переходим дальше
-        
-                } else if (dropChance < 0.1) { // 10% chance for Common
-                    newItem = createItem('Common', ['blue', 'violet', 'pink', 'red', 'orange', 'grey', 'black']);
-                    rarity = 'Common';
-                } else if (dropChance < 0.14) { // 4% chance for Uncommon
-                    newItem = createItem('Uncommon', ['cyan', 'lime']);
-                    rarity = 'Uncommon';
-                } else if (dropChance < 0.15) { // 1% chance for Rare
-                    newItem = createItem('Rare', ['brown']);
-                    rarity = 'Rare';
-                } else if (dropChance < 0.000001) { // 1 in 1,000,000 chance for Epic
-                    newItem = createItem('Epic', ['gold']);
-                    rarity = 'Epic';
-                } else if (dropChance < 0.0000001) { // 1 in 10,000,000 chance for Legendary
-                    newItem = createItem('Legendary', ['aqua']);
-                    rarity = 'Legendary';
-                }
-        
-                if (newItem) {
-                    inventory.appendChild(newItem);
-                    alert(`You received an item with ${rarity} rarity!`);
-                }
-            }
-        
-            saveState(); // Save the game state
-        });
-        
-        function createItem(rarity, colors) {
-            const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            const item = document.createElement('div');
-            item.classList.add('item');
-            item.style.backgroundColor = randomColor;
-            item.setAttribute('title', rarity);
-        
-            const infoBox = document.createElement('div');
-            infoBox.classList.add('item-info');
-            infoBox.textContent = rarity;
-            item.appendChild(infoBox);
-        
-            item.onclick = () => {
-                alert(`Rarity: ${rarity}`);
-            };
-        
-            return item;
-        }</script>
+
+        if (newItem) {
+            inventory.appendChild(newItem);
+            alert(`You received an item with ${rarity} rarity!`);
+        }
+    }
+
+    saveState(); // Save the game state
+}
+
+// Function to create an item
+function createItem(rarity, colors) {
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    const item = document.createElement('div');
+    item.classList.add('item');
+    item.style.backgroundColor = randomColor;
+    item.setAttribute('title', rarity);
+
+    const infoBox = document.createElement('div');
+    infoBox.classList.add('item-info');
+    infoBox.textContent = rarity;
+    item.appendChild(infoBox);
+
+    item.onclick = () => {
+        alert(`Rarity: ${rarity}`);
+    };
+
+    return item;
+}
+
+// Pause the ban timer when the user is leaving the page
+window.addEventListener('beforeunload', () => {
+    if (banInterval) {
+        clearInterval(banInterval); // Stop the interval when leaving the page
+    }
+    saveState(); // Save the state before leaving
+    saveBanState(); // Save the ban state before leaving
+});
+
+// Add event listeners for both mouse and keyboard events
+document.getElementById('clickable').addEventListener('click', handleClick);
+document.addEventListener('keydown', (event) => {
+    // Optionally, you can filter specific keys if needed (e.g., ignore 'Enter' or 'Esc' keys)
+    handleClick();
+});
+
+        </script>
       
 
 
