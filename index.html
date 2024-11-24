@@ -162,59 +162,12 @@
 
 
 
-        // Показ модального окна
-        accountButton.addEventListener('click', () => {
-            accountModal.style.display = 'flex';
 
-            if (accountData) {
-                // Отображение информации об аккаунте
-                displayUsername.textContent = accountData.username;
-                displayEmail.textContent = accountData.email;
-                displayUserId.textContent = accountData.userId; // Отображение ID
-                accountInfo.style.display = 'block';
-                registrationForm.style.display = 'none';
-            } else {
-                // Показ формы регистрации
-                accountInfo.style.display = 'none';
-                registrationForm.style.display = 'block';
-            }
-        });
 
-        // Закрытие модального окна
-        closeModal.addEventListener('click', () => {
-            accountModal.style.display = 'none';
-        });
 
-        // Регистрация аккаунта
-        registerForm.addEventListener('submit', (e) => {
-            e.preventDefault();
 
-            const username = document.getElementById('username').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const userId = generateUserId(); // Генерация нового ID
 
-            accountData = { username, email, password, userId };
-            localStorage.setItem('accountData', JSON.stringify(accountData));
 
-            alert(`Account registered successfully! Your User ID is: ${userId}`);
-            accountModal.style.display = 'none';
-        });
-
-        // Выход из аккаунта
-        logoutButton.addEventListener('click', () => {
-            localStorage.removeItem('accountData');
-            accountData = null;
-            alert('Logged out successfully!');
-            accountModal.style.display = 'none';
-        });
-
-        // Закрытие модального окна при клике вне контента
-        window.addEventListener('click', (event) => {
-            if (event.target === accountModal) {
-                accountModal.style.display = 'none';
-            }
-        });
 
 
         let clicksRemaining = 5000;
