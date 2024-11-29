@@ -103,3 +103,14 @@ button {
   color: gray;
   transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
+.rg-text {
+  color: white;
+}
+.dnt-text {
+  border: none;
+  background-color: rgba(0, 0, 0, 0);
+  color: blue;
+}
+.dnt-text:hover {
+  color: rgb(6, 6, 198);
+}

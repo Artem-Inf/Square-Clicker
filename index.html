@@ -35,7 +35,7 @@
 
     <div id="banMessage">
         <p class="ban-text">You are banned for exceeding 100 clicks per seconds!</p>
-        <p class="ban-timer">Time remaining: <t id="banTimer">3</span> seconds</p>
+        <p class="ban-timer">Time remaining: <t id="banTimer">300</span> seconds</p>
 
     </div>
     <div id="account-section">
@@ -45,6 +45,18 @@
     <div id="account-modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
+            <div id="login-form" style="display: none;">
+                <h2 class="main-title">Login</h2>
+                <form id="login-form-element">
+                    <label for="login-username" class="label-title">Username:</label>
+                    <input type="text" id="login-username" required>
+                    <label for="login-password" class="label-title">Password:</label>
+                    <input type="password" id="login-password" required>
+                    <button type="submit" class="btn-register">Login</button>
+                </form>
+                <p class="rg-text">Don't have an account? <a class="dnt-text" id="switch-to-register"
+                        href="#">Register</a></p>
+            </div>
             <div id="registration-form">
                 <h2 class="main-title">Register Account</h2>
                 <form id="register-form">
@@ -56,20 +68,26 @@
                     <input type="password" id="password" required>
                     <button type="submit" class="btn-register">Register</button>
                 </form>
+                <p class="rg-text">Already have an account? <a class="dnt-text" id="switch-to-login" href="#">Login</a>
+                </p>
             </div>
             <div id="account-info" style="display: none;">
                 <h2 class="main-title">Account Info</h2>
                 <p><strong class="label-title">Username:</strong> <span class="label-title"
-                        id="display-username"></span></p>
+                        id="display-username"></span>
+                </p>
                 <p><strong class="label-title">Email:</strong> <span class="label-title" id="display-email"></span></p>
                 <p><strong class="label-title">User ID:</strong> <span class="label-title" id="display-userid"></span>
                 </p>
                 <button id="logout-button" class="logout-btn">Logout</button>
+                <p class="r-text">Warning!</p>
+                <p class="c-text">If you logout your account be deleted!</p>
             </div>
         </div>
     </div>
 
     <script>
+        // Переменные для аккаунта и модального окна
         const accountButton = document.getElementById('account-button');
         const accountModal = document.getElementById('account-modal');
         const closeModal = document.querySelector('.close');
@@ -80,60 +98,114 @@
         const displayEmail = document.getElementById('display-email');
         const displayUserId = document.getElementById('display-userid');
         const logoutButton = document.getElementById('logout-button');
+        const loginForm = document.getElementById('login-form');
+        const loginFormElement = document.getElementById('login-form-element');
+        const switchToRegister = document.getElementById('switch-to-register');
+        const switchToLogin = document.getElementById('switch-to-login');
 
-        // Load account data
+        // Функции для аккаунтов
         let accountData = JSON.parse(localStorage.getItem('accountData'));
 
-        // Function to generate unique ID
+        // Генерация уникального User ID
         function generateUserId() {
-            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            let userId = '';
-            for (let i = 0; i < 10; i++) {
-                userId += characters.charAt(Math.floor(Math.random() * characters.length));
-            }
-            return userId;
+            return Math.random().toString(36).substr(2, 9);
         }
 
-        // Toggle modal visibility
-        accountButton.addEventListener('click', () => {
-            accountModal.style.display = 'flex';
+        // Проверка на истечение времени сессии (10 часов)
+        function checkLoginExpiration() {
+            const currentTime = Date.now();
+            if (accountData && accountData.lastLoginTime) {
+                const timeElapsed = currentTime - accountData.lastLoginTime;
+                const tenHoursInMs = 10 * 60 * 60 * 1000;
 
-            if (accountData) {
-                // Show account info
-                displayUsername.textContent = accountData.username;
-                displayEmail.textContent = accountData.email;
-                displayUserId.textContent = accountData.userId; // Display User ID
-                accountInfo.style.display = 'block';
-                registrationForm.style.display = 'none';
-            } else {
-                // Show registration form
-                accountInfo.style.display = 'none';
-                registrationForm.style.display = 'block';
+                if (timeElapsed > tenHoursInMs) {
+                    alert('Your session has expired. Please log in again.');
+                    localStorage.removeItem('accountData');
+                    accountData = null;
+                    accountInfo.style.display = 'none';
+                    loginForm.style.display = 'block';
+                }
             }
-        });
+        }
 
-        // Close modal
-        closeModal.addEventListener('click', () => {
-            accountModal.style.display = 'none';
-        });
-
-        // Register account
+        // Обработка регистрации
         registerForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
             const username = document.getElementById('username').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const userId = generateUserId(); // Generate a new ID
+            const userId = generateUserId();
 
-            accountData = { username, email, password, userId };
+            accountData = { username, email, password, userId, lastLoginTime: null };
             localStorage.setItem('accountData', JSON.stringify(accountData));
 
-            alert(`Account registered successfully! Your User ID is: ${userId}`);
+            alert(`Account registered successfully! Your User ID is: ${userId}. Please log in to continue.`);
+
+            registrationForm.style.display = 'none';
+            loginForm.style.display = 'block';
+        });
+
+        // Обработка логина
+        loginFormElement.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const loginUsername = document.getElementById('login-username').value;
+            const loginPassword = document.getElementById('login-password').value;
+
+            if (accountData && accountData.username === loginUsername && accountData.password === loginPassword) {
+                alert('Login successful!');
+                accountData.lastLoginTime = Date.now();
+                localStorage.setItem('accountData', JSON.stringify(accountData));
+
+                accountModal.style.display = 'none';
+                displayUsername.textContent = accountData.username;
+                displayEmail.textContent = accountData.email;
+                displayUserId.textContent = accountData.userId;
+                accountInfo.style.display = 'block';
+                loginForm.style.display = 'none';
+            } else {
+                alert('Invalid username or password.');
+            }
+        });
+
+
+
+        // Открытие модального окна аккаунта
+        accountButton.addEventListener('click', () => {
+            accountModal.style.display = 'flex';
+
+            if (accountData) {
+                displayUsername.textContent = accountData.username;
+                displayEmail.textContent = accountData.email;
+                displayUserId.textContent = accountData.userId;
+                accountInfo.style.display = 'block';
+                registrationForm.style.display = 'none';
+            } else {
+                accountInfo.style.display = 'none';
+                registrationForm.style.display = 'block';
+            }
+        });
+
+        // Закрытие модального окна
+        closeModal.addEventListener('click', () => {
             accountModal.style.display = 'none';
         });
 
-        // Logout
+        // Смена форм между логином и регистрацией
+        switchToRegister.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.style.display = 'none';
+            registrationForm.style.display = 'block';
+        });
+
+        switchToLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            registrationForm.style.display = 'none';
+            loginForm.style.display = 'block';
+        });
+
+        // Логаут
         logoutButton.addEventListener('click', () => {
             localStorage.removeItem('accountData');
             accountData = null;
@@ -141,45 +213,17 @@
             accountModal.style.display = 'none';
         });
 
-        // Close modal when clicking outside content
-        window.addEventListener('click', (event) => {
-            if (event.target === accountModal) {
-                accountModal.style.display = 'none';
-            }
-        });
-
-
-        // Close modal when clicking outside content
-        window.addEventListener('click', (event) => {
-            if (event.target === accountModal) {
-                accountModal.style.display = 'none';
-            }
-        });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        // Переменные для кликов и инвентаря
         let clicksRemaining = 5000;
         let totalClicks = 0;
         let lastClickTime = 0;
         let clickCount = 0;
         let isBanned = false;
         let banStartTime = 0;
-        let banDuration = 300; // Default 5 minutes (300 seconds)
-        let clickIntervalThreshold = 50; // Set an interval (in ms) to limit click rate
-        let banCount = 0; // Track the number of bans
-        let banInterval = null; // Track the interval for the ban timer
+        let banDuration = 300;
+        let clickIntervalThreshold = 50;
+        let banCount = 0;
+        let banInterval = null;
 
         const inventory = document.getElementById('inventory');
         const clicksRemainingDisplay = document.getElementById('clicksRemaining');
@@ -187,7 +231,7 @@
         const banMessage = document.getElementById('banMessage');
         const banTimer = document.getElementById('banTimer');
 
-        // Load saved state
+        // Восстановление состояния игры
         window.onload = () => {
             const savedState = JSON.parse(localStorage.getItem('gameState'));
             const savedBanState = JSON.parse(localStorage.getItem('banState'));
@@ -210,35 +254,33 @@
             }
         };
 
-        // Save game state
+        // Сохранение состояния игры
         function saveState() {
             const state = {
                 clicksRemaining,
                 totalClicks,
-                inventoryHTML: inventory.innerHTML
+                inventoryHTML: inventory.innerHTML,
             };
             localStorage.setItem('gameState', JSON.stringify(state));
         }
 
-        // Save ban state
+        // Сохранение состояния бана
         function saveBanState() {
             const banState = {
                 isBanned,
                 banStartTime,
-                banCount
+                banCount,
             };
             localStorage.setItem('banState', JSON.stringify(banState));
         }
 
-        // Show the ban screen and start the timer
+        // Показ экрана бана
         function showBanScreen() {
             banMessage.style.display = 'flex';
-
-            // Calculate the ban duration based on the number of bans
             if (banCount >= 5) {
-                banDuration = 1800; // 30 minutes
+                banDuration = 1800;
             } else {
-                banDuration = 300; // 5 minutes
+                banDuration = 300;
             }
 
             banInterval = setInterval(() => {
@@ -247,21 +289,21 @@
                 banTimer.textContent = timeRemaining;
 
                 if (timeRemaining <= 0) {
-                    clearInterval(banInterval); // Stop the timer once the ban duration is over
+                    clearInterval(banInterval);
                     isBanned = false;
                     banMessage.style.display = 'none';
-                    clickCount = 0; // Reset click count
-                    saveBanState(); // Update ban state
+                    clickCount = 0;
+                    saveBanState();
                 }
             }, 1000);
         }
 
-        // Handle the click event
+        // Обработка кликов
         function handleClick() {
             if (isBanned) return;
+
             const currentTime = Date.now();
 
-            // Check the time difference between the last click and the current one
             if (currentTime - lastClickTime < clickIntervalThreshold) {
                 clickCount++;
             } else {
@@ -270,11 +312,11 @@
 
             lastClickTime = currentTime;
 
-            if (clickCount > 10) { // If clicks are happening too fast (more than 10 clicks per 50ms)
+            if (clickCount > 10) {
                 isBanned = true;
                 banStartTime = Date.now();
-                banCount++; // Increment the ban count
-                saveBanState(); // Save ban state
+                banCount++;
+                saveBanState();
                 showBanScreen();
                 return;
             }
@@ -290,21 +332,21 @@
                 let newItem;
                 let rarity;
 
-                if (dropChance < 0.9) {
-                    // Nothing drops
-                } else if (dropChance < 0.1) { // 10% chance for Common
+                if (dropChance < 0.1) {
+                    // No drop
+                } else if (dropChance < 0.9) {
                     newItem = createItem('Common', ['blue', 'violet', 'pink', 'red', 'orange', 'grey', 'black']);
                     rarity = 'Common';
-                } else if (dropChance < 0.14) { // 4% chance for Uncommon
+                } else if (dropChance < 0.14) {
                     newItem = createItem('Uncommon', ['cyan', 'lime']);
                     rarity = 'Uncommon';
-                } else if (dropChance < 0.15) { // 1% chance for Rare
+                } else if (dropChance < 0.15) {
                     newItem = createItem('Rare', ['brown']);
                     rarity = 'Rare';
-                } else if (dropChance < 0.000001) { // 1 in 1,000,000 chance for Epic
+                } else if (dropChance < 0.000001) {
                     newItem = createItem('Epic', ['gold']);
                     rarity = 'Epic';
-                } else if (dropChance < 0.0000001) { // 1 in 10,000,000 chance for Legendary
+                } else if (dropChance < 0.0000001) {
                     newItem = createItem('Legendary', ['aqua']);
                     rarity = 'Legendary';
                 }
@@ -315,44 +357,21 @@
                 }
             }
 
-            saveState(); // Save the game state
+            saveState();
         }
 
-        // Function to create an item
+        // Создание предмета
         function createItem(rarity, colors) {
             const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            const item = document.createElement('div');
-            item.classList.add('item');
-            item.style.backgroundColor = randomColor;
-            item.setAttribute('title', rarity);
-
-            const infoBox = document.createElement('div');
-            infoBox.classList.add('item-info');
-            infoBox.textContent = rarity;
-            item.appendChild(infoBox);
-
-            item.onclick = () => {
-                alert(`Rarity: ${rarity}`);
-            };
-
-            return item;
+            const newItem = document.createElement('div');
+            newItem.className = `inventory-item ${rarity.toLowerCase()}-${randomColor}`;
+            newItem.textContent = `Item: ${rarity}`;
+            return newItem;
         }
 
-        // Pause the ban timer when the user is leaving the page
-        window.addEventListener('beforeunload', () => {
-            if (banInterval) {
-                clearInterval(banInterval); // Stop the interval when leaving the page
-            }
-            saveState(); // Save the state before leaving
-            saveBanState(); // Save the ban state before leaving
-        });
-
-        // Add event listeners for both mouse and keyboard events
+        // Привязка кликов
         document.getElementById('clickable').addEventListener('click', handleClick);
-        document.addEventListener('keydown', (event) => {
-            // Optionally, you can filter specific keys if needed (e.g., ignore 'Enter' or 'Esc' keys)
-            handleClick();
-        });
+
 
     </script>
 
