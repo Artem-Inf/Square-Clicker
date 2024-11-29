@@ -81,7 +81,7 @@
                 </p>
                 <button id="logout-button" class="logout-btn">Logout</button>
                 <p class="r-text">Warning!</p>
-                <p class="c-text">If you logout your account be deleted!</p>
+                <p class="c-text">If you logout your account be deleted! </p>
             </div>
         </div>
     </div>
@@ -335,7 +335,7 @@
                 if (dropChance < 0.1) {
                     // No drop
                 } else if (dropChance < 0.9) {
-                    newItem = createItem('Common', ['blue', 'violet', 'pink', 'red', 'orange', 'grey', 'black']);
+                      newItem = createItem('Common', ['blue', 'violet', 'pink', 'red', 'orange', 'grey', 'black' ]);
                     rarity = 'Common';
                 } else if (dropChance < 0.14) {
                     newItem = createItem('Uncommon', ['cyan', 'lime']);
@@ -359,15 +359,43 @@
 
             saveState();
         }
-
-        // Создание предмета
+       
         function createItem(rarity, colors) {
-            const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            const newItem = document.createElement('div');
-            newItem.className = `inventory-item ${rarity.toLowerCase()}-${randomColor}`;
-            newItem.textContent = `Item: ${rarity}`;
-            return newItem;
-        }
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    const newItem = document.createElement('div');
+    newItem.className = `inventory-item ${rarity.toLowerCase()}-${randomColor}`;
+
+    // Create a square div to represent the item
+    const square = document.createElement('div');
+    square.style.width = '70px';   // Set size of the square
+    square.style.height = '70px';
+    square.style.backgroundColor = randomColor;  // Set background to the random color
+    square.style.display = 'flex';
+    square.style.justifyContent = 'center';
+    square.style.alignItems = 'center';
+    square.style.marginRight = '10px'; // Space between square and text
+    square.style.position = 'relative';
+
+    // Create the rarity text inside the square
+    const rarityText = document.createElement('span');
+    rarityText.textContent = rarity;  // Set the rarity text
+    rarityText.style.color = 'white'; // Text color
+    rarityText.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'; // Black with transparency
+    rarityText.style.padding = '2px 5px'; // Some padding for the text
+    rarityText.style.borderRadius = '5px'; // Rounded corners for the text background
+    rarityText.style.position = 'absolute';
+    rarityText.style.bottom = '5px'; // Position the text at the bottom of the square
+    rarityText.style.left = '50%'; // Center the text horizontally
+    rarityText.style.transform = 'translateX(-50%)'; // Adjust the centering
+
+    // Append the rarity text inside the square
+    square.appendChild(rarityText);
+
+    // Append the square to the new item
+    newItem.appendChild(square);
+
+    return newItem;
+}
 
         // Привязка кликов
         document.getElementById('clickable').addEventListener('click', handleClick);
