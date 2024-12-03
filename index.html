@@ -327,38 +327,53 @@
             clicksRemainingDisplay.textContent = clicksRemaining;
 
             if (clicksRemaining <= 0) {
-                clicksRemaining = 5000;
-                const dropChance = Math.random();
-                let newItem;
-                let rarity;
+    clicksRemaining = 5000;
+    const dropChance = Math.random();
+    let newItem;
+    let rarity;
 
-                if (dropChance < 0.1) {
-                    // No drop
-                } else if (dropChance < 0.9) {
-                      newItem = createItem('Common', ['blue', 'violet', 'pink', 'red', 'orange', 'grey', 'black' ]);
-                    rarity = 'Common';
-                } else if (dropChance < 0.14) {
-                    newItem = createItem('Uncommon', ['cyan', 'lime']);
-                    rarity = 'Uncommon';
-                } else if (dropChance < 0.15) {
-                    newItem = createItem('Rare', ['brown']);
-                    rarity = 'Rare';
-                } else if (dropChance < 0.000001) {
-                    newItem = createItem('Epic', ['gold']);
-                    rarity = 'Epic';
-                } else if (dropChance < 0.0000001) {
-                    newItem = createItem('Legendary', ['aqua']);
-                    rarity = 'Legendary';
-                }
+    if (dropChance < 0.1) {
+        // No drop
+    } else if (dropChance < 0.9) {
+        newItem = createItem('Common', ['blue', 'violet', 'pink', 'red', 'orange', 'grey', 'black', ]);
+        rarity = 'Common';
+    } else if (dropChance < 0.14) {
+        newItem = createItem('Uncommon', ['cyan', 'lime']);
+        rarity = 'Uncommon';
+    } else if (dropChance < 0.15) {
+        newItem = createItem('Rare', ['brown']);
+        rarity = 'Rare';
+    } else if (dropChance < 0.000001) {
+        newItem = createItem('Epic', ['gold']);
+        rarity = 'Epic';
+    } else if (dropChance < 0.0000001) {
+        newItem = createItem('Legendary', ['aqua']);
+        rarity = 'Legendary';
+    }
 
-                if (newItem) {
-                    inventory.appendChild(newItem);
-                    alert(`You received an item with ${rarity} rarity!`);
-                }
-            }
+    if (newItem) {
+        // Assuming the createItem function handles the paths to the image files based on rarity
+        inventory.appendChild(newItem);
+        alert(`You received an item with ${rarity} rarity!`);
+    }
+}
 
-            saveState();
-        }
+saveState();
+
+}
+function createItem(rarity, colors) {
+    // Create the item element
+    const item = document.createElement('div');
+    item.classList.add('item');
+
+    // Create the image for the item, using the folder structure based on rarity
+    const img = document.createElement('img');
+    const color = colors[Math.floor(Math.random() * colors.length)]; // Random color selection from the list
+    img.src = `images/${rarity}/${color}.png`; // Assuming images are stored in folders by rarity
+
+    item.appendChild(img);
+    return item;
+}
        
         function createItem(rarity, colors) {
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
